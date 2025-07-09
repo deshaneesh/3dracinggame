@@ -118,12 +118,11 @@
 
         /* Responsive adjustments for small screens */
         @media (max-width: 600px) {
+            /* Force flex layout so items wrap instead of stretching full width */
+            #vehicleSelection { display:flex; flex-wrap:wrap; justify-content:center; gap:6px; }
             #startScreen h1 { font-size: 18px; }
             #startScreen p { font-size: 10px; }
             #startScreen button { font-size: 14px; padding: 6px 14px; }
-            #vehicleSelection {
-                grid-template-columns: repeat(auto-fit, minmax(45px, 1fr));
-            }
             #vehicleSelection .vehicle-option { width: 45px; height: 45px; font-size: 8px; padding:4px; }
             /* Remove global scaling that stacked elements; instead rely on font-size reduction */
             #gameUI > div { transform: none; }
