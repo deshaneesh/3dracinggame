@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page</title>
+</head>
+<body>
+    <h1>Testing Three.js and Game Loading...</h1>
+    <div id="output"></div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        const output = document.getElementById('output');
+        
+        // Test Three.js loading
+        if (typeof THREE !== 'undefined') {
+            output.innerHTML += '<p style="color: green;">✅ Three.js loaded successfully!</p>';
+            output.innerHTML += '<p>Three.js version: ' + THREE.REVISION + '</p>';
+        } else {
+            output.innerHTML += '<p style="color: red;">❌ Three.js failed to load!</p>';
+        }
+        
+        // Test basic Three.js functionality
+        try {
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer();
+            output.innerHTML += '<p style="color: green;">✅ Three.js basic functionality working!</p>';
+        } catch (error) {
+            output.innerHTML += '<p style="color: red;">❌ Three.js error: ' + error.message + '</p>';
+        }
+        
+        // Test game.js loading
+        const script = document.createElement('script');
+        script.src = 'js/game.js';
+        script.onload = function() {
+            output.innerHTML += '<p style="color: green;">✅ game.js loaded successfully!</p>';
+        };
+        script.onerror = function() {
+            output.innerHTML += '<p style="color: red;">❌ game.js failed to load!</p>';
+        };
+        document.head.appendChild(script);
+    </script>
+</body>
+</html> 

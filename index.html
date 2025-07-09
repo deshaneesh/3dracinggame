@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Car Racing Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        
+        canvas {
+            display: block;
+        }
+        
+        #gameUI {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        #speedometer {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        #lapInfo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: white;
+            font-size: 16px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        #minimap {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 150px;
+            height: 150px;
+            border: 2px solid white;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+        
+        #bestTime {
+            position: absolute;
+            top: 80px;
+            left: 20px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        #startScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 200;
+        }
+        
+        #startButton {
+            padding: 15px 30px;
+            font-size: 24px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+            pointer-events: auto;
+        }
+        
+        #startButton:hover {
+            background: #45a049;
+        }
+        
+        /* Pulse animation for cheat messages */
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div id="startScreen">
+        <h1>🏁 ULTIMATE RACING MADNESS! 🏁</h1>
+        <p>Choose from 10 INSANE Vehicles and Race Against 4 AI Opponents!</p>
+        <div id="vehicleSelection" style="display: flex; justify-content: center; flex-wrap: wrap; margin: 20px 0;">
+            <div class="vehicle-option" data-vehicle="car" style="margin: 10px; padding: 15px; border: 3px solid #4CAF50; border-radius: 10px; cursor: pointer; text-align: center; background: rgba(255,255,255,0.1);">
+                <div style="font-size: 40px;">🚗</div>
+                <div style="font-weight: bold; margin-top: 5px;">Racing Car</div>
+                <div style="font-size: 12px;">Classic speed machine</div>
+            </div>
+            <div class="vehicle-option" data-vehicle="aeroplane" style="margin: 10px; padding: 15px; border: 2px solid #666; border-radius: 10px; cursor: pointer; text-align: center; background: rgba(255,255,255,0.1);">
+                <div style="font-size: 40px;">✈️</div>
+                <div style="font-weight: bold; margin-top: 5px;">Aeroplane</div>
+                <div style="font-size: 12px;">Flies above ground</div>
+            </div>
+            <div class="vehicle-option" data-vehicle="ufo" style="margin: 10px; padding: 15px; border: 2px solid #666; border-radius: 10px; cursor: pointer; text-align: center; background: rgba(255,255,255,0.1);">
+                <div style="font-size: 40px;">🛸</div>
+                <div style="font-weight: bold; margin-top: 5px;">UFO</div>
+                <div style="font-size: 12px;">Alien technology</div>
+            </div>
+            <div class="vehicle-option" data-vehicle="toilet" style="margin: 10px; padding: 15px; border: 2px solid #666; border-radius: 10px; cursor: pointer; text-align: center; background: rgba(255,255,255,0.1);">
+                <div style="font-size: 40px;">🚽</div>
+                <div style="font-weight: bold; margin-top: 5px;">Toilet</div>
+                <div style="font-size: 12px;">Bathroom racer</div>
+            </div>
+            <div class="vehicle-option" data-vehicle="tposing" style="margin: 10px; padding: 15px; border: 2px solid #666; border-radius: 10px; cursor: pointer; text-align: center; background: rgba(255,255,255,0.1);">
+                <div style="font-size: 40px;">🧍</div>
+                <div style="font-weight: bold; margin-top: 5px;">T-Posing Man</div>
+                <div style="font-size: 12px;">Assert dominance</div>
+            </div>
+            <div class="vehicle-option" data-vehicle="hyperchair" style="margin: 10px; padding: 15px; border: 2px solid #666; border-radius: 10px; cursor: pointer; text-align: center; background: rgba(255,255,255,0.1);">
+                <div style="font-size: 40px;">🚀</div>
+                <div style="font-weight: bold; margin-top: 5px;">Hyperspace Chair</div>
+                <div style="font-size: 12px;">Quantum racing</div>
+            </div>
+            <div class="vehicle-option" data-vehicle="electriccar" style="margin: 10px; padding: 15px; border: 2px solid #666; border-radius: 10px; cursor: pointer; text-align: center; background: rgba(255,255,255,0.1);">
+                <div style="font-size: 40px;">⚡</div>
+                <div style="font-weight: bold; margin-top: 5px;">Electric Car</div>
+                <div style="font-size: 12px;">Zero emissions!</div>
+            </div>
+            <div class="vehicle-option" data-vehicle="shoppingcart" style="margin: 10px; padding: 15px; border: 2px solid #ff6600; border-radius: 10px; cursor: pointer; text-align: center; background: rgba(255,102,0,0.2);">
+                <div style="font-size: 40px;">🛒</div>
+                <div style="font-weight: bold; margin-top: 5px; color: #ff6600;">TURBO Cart</div>
+                <div style="font-size: 12px; color: #ffff00;">⚡ 500KM/H BEAST! ⚡</div>
+            </div>
+            <div class="vehicle-option" data-vehicle="duckhorse" style="margin: 10px; padding: 15px; border: 2px solid #666; border-radius: 10px; cursor: pointer; text-align: center; background: rgba(255,255,255,0.1);">
+                <div style="font-size: 40px;">🦆</div>
+                <div style="font-weight: bold; margin-top: 5px;">Duck-Horse Hybrid</div>
+                <div style="font-size: 12px;">Mythical beast!</div>
+            </div>
+            <div class="vehicle-option" data-vehicle="rocket" style="margin: 10px; padding: 15px; border: 2px solid #ff3300; border-radius: 10px; cursor: pointer; text-align: center; background: rgba(255,51,0,0.2);">
+                <div style="font-size: 40px;">🚀</div>
+                <div style="font-weight: bold; margin-top: 5px; color: #ff3300;">ROCKET</div>
+                <div style="font-size: 12px; color: #ffff00;">⚡ SPACE SPEED! ⚡</div>
+            </div>
+            <div class="vehicle-option" data-vehicle="shopvehicle" style="margin: 10px; padding: 15px; border: 2px solid #FFD700; border-radius: 10px; cursor: pointer; text-align: center; background: rgba(255,215,0,0.2);">
+                <div style="font-size: 40px;">🏪</div>
+                <div style="font-weight: bold; margin-top: 5px; color: #FFD700;">Mobile Shop</div>
+                <div style="font-size: 12px; color: #fff;">Sell while you race!</div>
+            </div>
+            <div class="vehicle-option" data-vehicle="walkingcooler" style="margin: 10px; padding: 15px; border: 2px solid #87CEEB; border-radius: 10px; cursor: pointer; text-align: center; background: rgba(135,206,235,0.2);">
+                <div style="font-size: 40px;">🧊</div>
+                <div style="font-weight: bold; margin-top: 5px; color: #87CEEB;">Walking Cooler</div>
+                <div style="font-size: 12px; color: #fff;">Cool legs!</div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin: 20px 0;">
+            <p style="font-size: 18px; color: #00ff00;">💎 NEW: Earn GEMS by completing achievements! 💎</p>
+            <p style="margin-top: 10px;">Use WASD or Arrow Keys to control your vehicle | SPACE for BOOST</p>
+            <p style="font-size: 16px; color: #FFD700;">💰 Press "I" for infinite coins cheat! 💰</p>
+        </div>
+        
+        <div style="display: flex; gap: 20px; justify-content: center; margin: 20px 0;">
+            <button id="startButton">🏁 START EPIC RACE! 🏁</button>
+            <button id="shopButton" onclick="window.game && window.game.openShop ? window.game.openShop() : console.error('Shop not ready')" style="padding: 15px 30px; font-size: 20px; background: #FFD700; color: black; border: none; border-radius: 10px; cursor: pointer; pointer-events: auto; font-weight: bold;">🛒 COIN SHOP 🛒</button>
+            <button id="gemShopButton" onclick="window.game && window.game.openGemShop ? window.game.openGemShop() : console.error('Gem shop not ready')" style="padding: 15px 30px; font-size: 20px; background: #9900ff; color: white; border: none; border-radius: 10px; cursor: pointer; pointer-events: auto; font-weight: bold;">💎 GEM SHOP 💎</button>
+            <button id="achievementsButton" onclick="window.game && window.game.showAchievements ? window.game.showAchievements() : console.error('Achievements not ready')" style="padding: 15px 30px; font-size: 20px; background: #ff6600; color: white; border: none; border-radius: 10px; cursor: pointer; pointer-events: auto; font-weight: bold;">🏆 ACHIEVEMENTS 🏆</button>
+        </div>
+    </div>
+    
+    <!-- Shop Screen -->
+    <div id="shopScreen" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; justify-content: flex-start; align-items: center; color: white; z-index: 250; overflow-y: auto; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #FFD700; margin: 0;">🛒 RACING SHOP 🛒</h1>
+            <p style="font-size: 20px; margin: 10px 0;">Your Coins: <span id="shopCoins" style="color: #FFD700; font-weight: bold;">0</span> 💰</p>
+        </div>
+        
+        <!-- Shop Categories -->
+        <div style="display: flex; gap: 40px; width: 100%; max-width: 1200px;">
+            <!-- Vehicle Upgrades -->
+            <div style="flex: 1; background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px;">
+                <h2 style="color: #4CAF50; text-align: center;">🔧 VEHICLE UPGRADES</h2>
+                <div id="vehicleUpgrades">
+                    <div class="upgrade-item" style="margin: 15px 0; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px;">
+                        <h3 style="margin: 0; color: #ff6600;">⚡ Speed Boost</h3>
+                        <p style="margin: 5px 0; font-size: 14px;">+0.3 Max Speed for selected vehicle</p>
+                        <button class="upgrade-btn" data-type="speed" data-cost="100" style="padding: 10px 20px; background: #ff6600; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                            Buy for 100 💰
+                        </button>
+                    </div>
+                    <div class="upgrade-item" style="margin: 15px 0; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px;">
+                        <h3 style="margin: 0; color: #00ff00;">🚀 Acceleration Boost</h3>
+                        <p style="margin: 5px 0; font-size: 14px;">+0.3 Acceleration for selected vehicle</p>
+                        <button class="upgrade-btn" data-type="acceleration" data-cost="80" style="padding: 10px 20px; background: #00ff00; color: black; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                            Buy for 80 💰
+                        </button>
+                    </div>
+                    <div class="upgrade-item" style="margin: 15px 0; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px;">
+                        <h3 style="margin: 0; color: #0099ff;">🎯 Handling Boost</h3>
+                        <p style="margin: 5px 0; font-size: 14px;">+0.3 Turning for selected vehicle</p>
+                        <button class="upgrade-btn" data-type="turning" data-cost="60" style="padding: 10px 20px; background: #0099ff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                            Buy for 60 💰
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Global Upgrades -->
+            <div style="flex: 1; background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px;">
+                <h2 style="color: #ff3300; text-align: center;">⚡ GLOBAL UPGRADES</h2>
+                <div id="globalUpgrades">
+                    <div class="upgrade-item" style="margin: 15px 0; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px;">
+                        <h3 style="margin: 0; color: #ffff00;">⏱️ Boost Cooldown</h3>
+                        <p style="margin: 5px 0; font-size: 14px;">Reduce boost cooldown by 0.5 seconds</p>
+                        <p style="margin: 5px 0; font-size: 12px; color: #aaa;">Current Level: <span id="boostLevel">0</span>/4</p>
+                        <button id="boostUpgradeBtn" data-cost="150" style="padding: 10px 20px; background: #ffff00; color: black; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                            Buy for 150 💰
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Premium Vehicles -->
+            <div style="flex: 1; background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px;">
+                <h2 style="color: #9900ff; text-align: center;">🚀 PREMIUM VEHICLES</h2>
+                <div id="premiumVehicles">
+                    <div class="upgrade-item" style="margin: 15px 0; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px;">
+                        <h3 style="margin: 0; color: #ff3300;">🚀 ROCKET</h3>
+                        <p style="margin: 5px 0; font-size: 14px;">Ultra-fast space vehicle!</p>
+                        <p style="margin: 5px 0; font-size: 12px;">Speed: ★★★★★ | Acceleration: ★★★★★</p>
+                        <button class="vehicle-unlock-btn" data-vehicle="rocket" data-cost="500" style="padding: 10px 20px; background: #ff3300; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                            Unlock for 500 💰
+                        </button>
+                    </div>
+                    <div class="upgrade-item" style="margin: 15px 0; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px;">
+                        <h3 style="margin: 0; color: #FFD700;">🏪 Mobile Shop</h3>
+                        <p style="margin: 5px 0; font-size: 14px;">Earn coins while racing!</p>
+                        <p style="margin: 5px 0; font-size: 12px;">Special: +50% coin collection</p>
+                        <button class="vehicle-unlock-btn" data-vehicle="shopvehicle" data-cost="300" style="padding: 10px 20px; background: #FFD700; color: black; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                            Unlock for 300 💰
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <button id="closeShopBtn" style="padding: 15px 30px; font-size: 18px; background: #666; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 30px; pointer-events: auto;">
+            ❌ CLOSE SHOP
+        </button>
+    </div>
+    
+    <!-- Gem Shop Screen -->
+    <div id="gemShopScreen" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(25,0,50,0.98); display: none; flex-direction: column; justify-content: flex-start; align-items: center; color: white; z-index: 260; overflow-y: auto; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #9900ff; margin: 0; text-shadow: 0 0 20px #9900ff;">💎 EVOLVED VEHICLE GEM SHOP 💎</h1>
+            <p style="font-size: 20px; margin: 10px 0;">Your Gems: <span id="shopGems" style="color: #9900ff; font-weight: bold; text-shadow: 0 0 10px #9900ff;">0</span> 💎</p>
+            <p style="font-size: 16px; color: #ffff00;">🏆 Earn gems by completing achievements! 🏆</p>
+        </div>
+        
+        <!-- Evolved Vehicles Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; width: 100%; max-width: 1400px;">
+            
+            <!-- Evolved Car -->
+            <div class="evolved-vehicle-item" style="background: linear-gradient(45deg, rgba(255,0,0,0.3), rgba(255,100,0,0.3)); padding: 20px; border-radius: 15px; border: 2px solid #ff3300; text-align: center;">
+                <div style="font-size: 60px;">🏎️</div>
+                <h3 style="color: #ff3300; margin: 10px 0;">EVOLVED RACING CAR</h3>
+                <p style="font-size: 14px; margin: 10px 0;">The ultimate evolution of the racing car with jet engines!</p>
+                <div style="font-size: 12px; margin: 10px 0;">
+                    <div style="color: #ffff00;">Max Speed: ★★★★★</div>
+                    <div style="color: #00ff00;">Acceleration: ★★★★★</div>
+                    <div style="color: #0099ff;">Turning: ★★★★☆</div>
+                </div>
+                <button class="evolved-vehicle-btn" data-vehicle="evolved_car" data-cost="100" style="padding: 12px 25px; background: #ff3300; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px;">
+                    Unlock for 100 💎
+                </button>
+            </div>
+            
+            <!-- Evolved Rocket -->
+            <div class="evolved-vehicle-item" style="background: linear-gradient(45deg, rgba(255,50,0,0.3), rgba(255,150,0,0.3)); padding: 20px; border-radius: 15px; border: 2px solid #ff6600; text-align: center;">
+                <div style="font-size: 60px;">🚀</div>
+                <h3 style="color: #ff6600; margin: 10px 0;">OMEGA ROCKET</h3>
+                <p style="font-size: 14px; margin: 10px 0;">Massive space destroyer with 6 boosters!</p>
+                <div style="font-size: 12px; margin: 10px 0;">
+                    <div style="color: #ffff00;">Max Speed: ★★★★★</div>
+                    <div style="color: #00ff00;">Acceleration: ★★★★★</div>
+                    <div style="color: #0099ff;">Turning: ★★☆☆☆</div>
+                </div>
+                <button class="evolved-vehicle-btn" data-vehicle="evolved_rocket" data-cost="200" style="padding: 12px 25px; background: #ff6600; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px;">
+                    Unlock for 200 💎
+                </button>
+            </div>
+            
+            <!-- Evolved UFO -->
+            <div class="evolved-vehicle-item" style="background: linear-gradient(45deg, rgba(0,255,255,0.3), rgba(0,255,0,0.3)); padding: 20px; border-radius: 15px; border: 2px solid #00ffff; text-align: center;">
+                <div style="font-size: 60px;">🛸</div>
+                <h3 style="color: #00ffff; margin: 10px 0;">MOTHER SHIP UFO</h3>
+                <p style="font-size: 14px; margin: 10px 0;">Massive alien craft with energy rings!</p>
+                <div style="font-size: 12px; margin: 10px 0;">
+                    <div style="color: #ffff00;">Max Speed: ★★★★★</div>
+                    <div style="color: #00ff00;">Acceleration: ★★★★★</div>
+                    <div style="color: #0099ff;">Turning: ★★★★★</div>
+                </div>
+                <button class="evolved-vehicle-btn" data-vehicle="evolved_ufo" data-cost="150" style="padding: 12px 25px; background: #00ffff; color: black; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px;">
+                    Unlock for 150 💎
+                </button>
+            </div>
+            
+            <!-- More evolved vehicles will be added here -->
+            <div style="text-align: center; padding: 40px; color: #666; grid-column: 1 / -1;">
+                <h3>🔥 MORE EVOLVED VEHICLES COMING SOON! 🔥</h3>
+                <p>Complete more achievements to unlock additional evolved vehicles!</p>
+            </div>
+            
+        </div>
+        
+        <button id="closeGemShopBtn" style="padding: 15px 30px; font-size: 18px; background: #666; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 30px; pointer-events: auto;">
+            ❌ CLOSE GEM SHOP
+        </button>
+    </div>
+    
+    <!-- Achievements Screen -->
+    <div id="achievementsScreen" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(50,25,0,0.98); display: none; flex-direction: column; justify-content: flex-start; align-items: center; color: white; z-index: 270; overflow-y: auto; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #ff6600; margin: 0; text-shadow: 0 0 20px #ff6600;">🏆 RACING ACHIEVEMENTS 🏆</h1>
+            <p style="font-size: 18px; margin: 10px 0;">Complete achievements to earn gems!</p>
+        </div>
+        
+        <div id="achievementsList" style="width: 100%; max-width: 800px; display: grid; gap: 15px;">
+            <!-- Achievements will be populated by JavaScript -->
+        </div>
+        
+        <button id="closeAchievementsBtn" style="padding: 15px 30px; font-size: 18px; background: #666; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 30px; pointer-events: auto;">
+            ❌ CLOSE ACHIEVEMENTS
+        </button>
+    </div>
+    
+    <div id="gameUI">
+        <div id="lapInfo">
+            <div style="color: #ff0000;">🔴 You: Lap <span id="currentLap">1</span> / 3</div>
+            <div style="color: #0066ff;">🔵 AI: Lap <span id="aiCurrentLap">1</span> / 3</div>
+            <div>Time: <span id="raceTime">00:00</span></div>
+        </div>
+        
+        <div id="bestTime">
+            Best: <span id="bestTimeValue">--:--</span>
+        </div>
+        
+        <div id="position" style="position: absolute; top: 120px; left: 20px; color: white; font-size: 18px; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
+            Position: <span id="positionValue">1st</span>
+        </div>
+        
+        <div id="speedometer">
+            Speed: <span id="speed">0</span> km/h
+        </div>
+        
+        <div id="minimap">
+            <canvas id="minimapCanvas" width="150" height="150"></canvas>
+        </div>
+        
+        <div id="controls">
+            Controls:<br>
+            W/↑ - Accelerate<br>
+            S/↓ - Brake/Reverse<br>
+            A/← - Turn Left<br>
+            D/→ - Turn Right<br>
+            <span style="color: #ffff00;">SPACE - BOOST! ⚡</span>
+        </div>
+        
+        <div id="boostMeter" style="position: absolute; bottom: 120px; right: 20px; color: white; font-size: 16px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
+            <div style="margin-bottom: 5px;">BOOST ⚡</div>
+            <div style="width: 120px; height: 20px; border: 2px solid white; border-radius: 10px; background: rgba(0,0,0,0.5);">
+                <div id="boostFill" style="width: 100%; height: 100%; background: linear-gradient(90deg, #ffff00, #ff6600); border-radius: 8px; transition: width 0.1s;"></div>
+            </div>
+            <div id="boostCooldown" style="font-size: 12px; text-align: center; margin-top: 2px;">READY!</div>
+        </div>
+        
+        <div id="vehicleInfo" style="position: absolute; top: 160px; left: 20px; color: white; font-size: 16px; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
+            <div id="vehicleName">Racing Car 🚗</div>
+            <div id="vehicleStats" style="font-size: 12px; margin-top: 3px;">Max Speed: ★★★ | Acceleration: ★★★ | Turning: ★★★</div>
+        </div>
+        
+        <div id="coinCounter" style="position: absolute; top: 20px; right: 200px; color: white; font-size: 18px; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); background: rgba(0,0,0,0.5); padding: 10px; border-radius: 10px;">
+            <div style="text-align: center;">
+                <div style="font-size: 24px;">💰</div>
+                <div>Coins: <span id="coinCount">0</span></div>
+                <div style="font-size: 12px; color: #ffff00;">Race: +<span id="raceCoins">0</span></div>
+            </div>
+        </div>
+        
+        <div id="gemCounter" style="position: absolute; top: 120px; right: 200px; color: white; font-size: 18px; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); background: rgba(75,0,130,0.5); padding: 10px; border-radius: 10px; border: 2px solid #9900ff;">
+            <div style="text-align: center;">
+                <div style="font-size: 24px;">💎</div>
+                <div style="color: #9900ff;">Gems: <span id="gemCount">0</span></div>
+                <div style="font-size: 12px; color: #bb88ff;">From achievements</div>
+            </div>
+        </div>
+        
+        <div id="shopButton" style="position: absolute; bottom: 20px; right: 200px; pointer-events: auto;">
+            <button id="openShopBtn" style="padding: 15px 25px; font-size: 18px; background: #FFD700; color: #000; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; box-shadow: 2px 2px 8px rgba(0,0,0,0.5);">
+                🛒 SHOP
+            </button>
+        </div>
+    </div>
+
+    <!-- Three.js - Multiple CDN options for reliability -->
+    <script src="https://unpkg.com/three@0.146.0/build/three.min.js" 
+            onerror="this.onerror=null; this.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/146/three.min.js'"></script>
+    
+    <!-- Error handling -->
+    <script>
+        window.addEventListener('error', function(e) {
+            console.error('🚨 GAME ERROR:', e.message, 'at', e.filename, ':', e.lineno);
+            if (e.message.includes('THREE')) {
+                alert('🚨 THREE.JS LOADING ERROR!\n\nTrying to fix...\nCheck your internet connection.\nIf this persists, try refreshing the page.');
+            }
+        });
+        
+        // Enhanced Three.js loading check
+        function checkThreeJS() {
+            if (typeof THREE === 'undefined') {
+                console.error('🚨 THREE.js not loaded! Attempting backup...');
+                
+                // Try backup CDN
+                const script = document.createElement('script');
+                script.src = 'https://threejs.org/build/three.min.js';
+                script.onload = function() {
+                    console.log('✅ THREE.js loaded from backup CDN');
+                    if (typeof initGame === 'function') {
+                        setTimeout(initGame, 100);
+                    }
+                };
+                script.onerror = function() {
+                    alert('❌ CRITICAL ERROR: Cannot load Three.js library!\n\nPlease check your internet connection and refresh the page.');
+                };
+                document.head.appendChild(script);
+                return false;
+            } else {
+                console.log('✅ THREE.js loaded successfully');
+                return true;
+            }
+        }
+        
+        // Check Three.js after a short delay
+        setTimeout(checkThreeJS, 100);
+    </script>
+    
+    <!-- Game scripts -->
+    <script src="js/game.js"></script>
+</body>
+</html> 
