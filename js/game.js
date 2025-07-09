@@ -232,7 +232,7 @@ class CarRacingGame {
         // No borders - free driving on the massive track!
         
         // Create checkpoints around the massive loop
-        this.createLoopCheckpoints(outerRadius, innerRadius);
+        this.checkpoints = [];
         
         // Spawn collectible coins 💰
         this.spawnCoins(outerRadius, innerRadius);
@@ -240,8 +240,6 @@ class CarRacingGame {
         // Create protective barriers at outer edge of circuit
         this.createBarriers(outerRadius);
     }
-    
-
     
     createLoopCheckpoints(outerRadius, innerRadius) {
         const checkpointCount = 8;
@@ -2571,14 +2569,14 @@ class CarRacingGame {
         document.getElementById('speed').textContent = Math.round(this.carSpeed * 200);
         
         // Calculate player position among all racers
-        const playerProgress = this.currentLap + (this.lastCheckpoint / this.checkpoints.length);
+        const playerProgress = (this.checkpoints.length > 0) ? this.currentLap + (this.lastCheckpoint / this.checkpoints.length) : 0;
         let position = 1;
         
         if (this.aiCarsData.length > 0) {
             // Show AI lap info (just the leading AI)
             const leadingAI = this.aiCarsData.reduce((leader, ai) => {
-                const aiProgress = ai.currentLap + (ai.lastCheckpoint / this.checkpoints.length);
-                const leaderProgress = leader.currentLap + (leader.lastCheckpoint / this.checkpoints.length);
+                const aiProgress = (this.checkpoints.length > 0) ? ai.currentLap + (ai.lastCheckpoint / this.checkpoints.length) : 0;
+                const leaderProgress = (this.checkpoints.length > 0) ? leader.currentLap + (leader.lastCheckpoint / this.checkpoints.length) : 0;
                 return aiProgress > leaderProgress ? ai : leader;
             });
             
@@ -2586,7 +2584,7 @@ class CarRacingGame {
             
             // Calculate position
             this.aiCarsData.forEach(aiData => {
-                const aiProgress = aiData.currentLap + (aiData.lastCheckpoint / this.checkpoints.length);
+                const aiProgress = (this.checkpoints.length > 0) ? aiData.currentLap + (aiData.lastCheckpoint / this.checkpoints.length) : 0;
                 if (aiProgress > playerProgress) position++;
             });
         }
@@ -2749,7 +2747,7 @@ class CarRacingGame {
         
         // Check track boundaries and collisions
         this.checkBoundaries();
-        this.checkCheckpoints();
+        // Checkpoints disabled
         this.checkCarCollision();
     }
     
@@ -2844,83 +2842,6 @@ class CarRacingGame {
         oscillator.stop(this.audioContext.currentTime + 0.3);
     }
     
-    checkCheckpoints() {
-        const carPos = this.car.position;
-        
-        this.checkpoints.forEach((checkpoint, index) => {
-            const distance = carPos.distanceTo(checkpoint.position);
-            
-            if (distance < 5 && !checkpoint.passed) {
-                if (index === (this.lastCheckpoint + 1) % this.checkpoints.length || 
-                    (this.lastCheckpoint === this.checkpoints.length - 1 && index === 0)) {
-                    
-                    checkpoint.passed = true;
-                    this.lastCheckpoint = index;
-                    
-                    // Play checkpoint sound
-                    this.playCheckpointSound();
-                    
-                    // Check if completed a lap
-                    if (index === 0 && this.lastCheckpoint === 0) {
-                        this.completeLap();
-                    }
-                }
-            }
-        });
-    }
-    
-    completeLap() {
-        this.currentLap++;
-        
-        // Reset checkpoints for next lap
-        this.checkpoints.forEach(checkpoint => checkpoint.passed = false);
-        this.lastCheckpoint = 0;
-        
-        if (this.currentLap > this.maxLaps) {
-            this.endRace(true); // true = player won
-        }
-    }
-    
-    endRace(playerWon = true, winningAIIndex = 0) {
-        this.gameStarted = false;
-        
-        // Track race completion and wins
-        this.updateRaceStats('totalRaces');
-        if (playerWon) {
-            this.updateRaceStats('wins');
-        }
-        
-        // Calculate final time
-        const finalTime = (Date.now() - this.raceStartTime) / 1000;
-        const timeText = this.formatTime(finalTime);
-        
-        let message;
-        if (playerWon) {
-            message = `🏆 EPIC VICTORY! 🏆\nYou beat 2 AI opponents!\nFinal time: ${timeText}`;
-            
-            // Check if it's a new best time (only for player wins)
-            if (!this.bestTime || finalTime < parseFloat(this.bestTime)) {
-                this.bestTime = finalTime.toString();
-                localStorage.setItem('carRacingBestTime', this.bestTime);
-                document.getElementById('bestTimeValue').textContent = timeText;
-                message += '\n🌟 NEW BEST TIME! 🌟';
-            }
-        } else {
-            const winningVehicle = this.aiCarsData[winningAIIndex].vehicleType;
-            const vehicleEmojis = {
-                car: '🚗', aeroplane: '✈️', ufo: '🛸', toilet: '🚽', 
-                tposing: '🧍', hyperchair: '🚀', electriccar: '⚡',
-                shoppingcart: '🛒', duckhorse: '🦆'
-            };
-            message = `${vehicleEmojis[winningVehicle]} AI ${winningVehicle.toUpperCase()} WON! ${vehicleEmojis[winningVehicle]}\nBetter luck next time!\nYour time: ${timeText}`;
-        }
-        
-        alert(message);
-        
-        // Show start screen again
-        document.getElementById('startScreen').style.display = 'flex';
-    }
-    
     updateAllAICarsPhysics() {
         if (!this.gameStarted || this.aiCars.length === 0) return;
         
@@ -2973,42 +2894,7 @@ class CarRacingGame {
             const variation = Math.sin(time * 0.8 + index) * 0.01;
             aiCar.rotation.y += variation;
             
-            // Check AI checkpoints
-            this.checkAICheckpoints(aiCar, aiData, index);
-        });
-    }
-    
-    checkAICheckpoints(aiCar, aiData, aiIndex) {
-        const aiCarPos = aiCar.position;
-        
-        this.checkpoints.forEach((checkpoint, index) => {
-            const distance = aiCarPos.distanceTo(checkpoint.position);
-            
-            // Much larger detection radius for AI cars to ensure they hit checkpoints
-            if (distance < 20) { 
-                // More flexible checkpoint progression - allow hitting checkpoints in order
-                const nextCheckpoint = (aiData.lastCheckpoint + 1) % this.checkpoints.length;
-                const isCorrectCheckpoint = index === nextCheckpoint || 
-                    (aiData.lastCheckpoint === this.checkpoints.length - 1 && index === 0);
-                
-                if (isCorrectCheckpoint) {
-                    aiData.lastCheckpoint = index;
-                    
-                    // Visual feedback - change checkpoint color when AI hits it
-                    console.log(`🤖 AI ${aiIndex} (${aiData.vehicleType}) hit checkpoint ${index}!`);
-                    
-                    // Check if AI completed a lap
-                    if (index === 0 && aiData.lastCheckpoint === 0) {
-                        aiData.currentLap++;
-                        console.log(`🏁 AI ${aiIndex} completed lap ${aiData.currentLap - 1}!`);
-                        
-                        if (aiData.currentLap > this.maxLaps) {
-                            // This AI finished the race
-                            this.endRace(false, aiIndex); // false = AI won
-                        }
-                    }
-                }
-            }
+            // Check AI checkpoints (disabled)
         });
     }
     
