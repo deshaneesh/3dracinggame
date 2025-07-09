@@ -121,8 +121,12 @@
             #startScreen h1 { font-size: 18px; }
             #startScreen p { font-size: 10px; }
             #startScreen button { font-size: 14px; padding: 6px 14px; }
+            #vehicleSelection {
+                grid-template-columns: repeat(auto-fit, minmax(45px, 1fr));
+            }
             #vehicleSelection .vehicle-option { width: 45px; height: 45px; font-size: 8px; padding:4px; }
-            #gameUI > div { transform: scale(0.6); transform-origin: bottom left; }
+            /* Remove global scaling that stacked elements; instead rely on font-size reduction */
+            #gameUI > div { transform: none; }
             #speedometer, #lapInfo, #controls, #bestTime, #position, #coinCounter, #gemCounter, #boostMeter {
                 font-size: 60%;
             }
