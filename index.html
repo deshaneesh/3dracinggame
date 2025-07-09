@@ -123,13 +123,13 @@
             #startScreen h1 { font-size: 18px; }
             #startScreen p { font-size: 10px; }
             #startScreen button { font-size: 14px; padding: 6px 14px; }
-            #vehicleSelection .vehicle-option { width: 45px; height: 45px; font-size: 8px; padding:4px; }
-            /* Remove global scaling that stacked elements; instead rely on font-size reduction */
-            #gameUI > div { transform: none; }
+            #vehicleSelection .vehicle-option { width: 30px; height: 30px; font-size: 6px; padding:3px; }
+            /* Shrink entire game UI (HUD) to 20% */
+            #gameUI { transform: scale(0.2); transform-origin: bottom left; }
             #speedometer, #lapInfo, #controls, #bestTime, #position, #coinCounter, #gemCounter, #boostMeter {
-                font-size: 60%;
+                font-size: 40%;
             }
-            #openShopBtn { font-size: 12px; padding: 8px 14px; }
+            #openShopBtn { font-size: 10px; padding: 6px 10px; }
         }
     </style>
 </head>
