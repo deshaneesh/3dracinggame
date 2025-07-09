@@ -86,6 +86,20 @@ class CarRacingGame {
         this.outerRadius = this.trackConfigs[0].outerRadius;
         this.innerRadius = this.trackConfigs[0].innerRadius;
         this.trackRadius = (this.outerRadius + this.innerRadius) / 2;
+
+        // 📦 EVOLVED VEHICLE CATALOG (for gem shop)
+        this.evolvedVehicleCatalog = {
+            evolved_car:         { name: 'EVOLVED RACING CAR',   cost: 100, emoji: '🏎️' },
+            evolved_rocket:      { name: 'OMEGA ROCKET',         cost: 200, emoji: '🚀' },
+            evolved_ufo:         { name: 'MOTHER SHIP UFO',      cost: 150, emoji: '🛸' },
+            evolved_aeroplane:   { name: 'JET FALCON',           cost: 120, emoji: '✈️' },
+            evolved_toilet:      { name: 'GOLDEN THRONE',        cost: 90,  emoji: '🚽' },
+            evolved_tposing:     { name: 'ALPHA HUMAN',          cost: 110, emoji: '🧍' },
+            evolved_hyperchair:  { name: 'QUANTUM CHAIR',        cost: 130, emoji: '🚀' },
+            evolved_electriccar: { name: 'CYBER EV',             cost: 140, emoji: '⚡' },
+            evolved_shoppingcart:{ name: 'MEGA MALL CART',       cost: 80,  emoji: '🛒' },
+            evolved_duckhorse:   { name: 'MYTHIC QUACKALLOP',    cost: 95,  emoji: '🦆' }
+        };
     }
     
     init() {
@@ -866,6 +880,8 @@ class CarRacingGame {
     
     // 💎 GEM SHOP SYSTEM 💎
     openGemShop() {
+        // Ensure UI is built
+        this.buildGemShopUI();
         document.getElementById('gemShopScreen').style.display = 'flex';
         document.getElementById('shopGems').textContent = this.playerGems;
         this.updateGemShopDisplay();
@@ -1496,12 +1512,34 @@ class CarRacingGame {
         fuselage.castShadow = true;
         vehicle.add(fuselage);
         
-        // Wings
-        const wingGeometry = new THREE.BoxGeometry(12, 0.5, 3);
-        const wings = new THREE.Mesh(wingGeometry, new THREE.MeshPhongMaterial({ color: color }));
-        wings.position.y = 3;
-        wings.castShadow = true;
-        vehicle.add(wings);
+        // Main wings (left & right)
+        const wingMaterial = new THREE.MeshPhongMaterial({ color: color });
+        const wingGeom = new THREE.BoxGeometry(6, 0.3, 1.5);
+
+        const leftWing = new THREE.Mesh(wingGeom, wingMaterial);
+        leftWing.position.set(-3, 3, 0);
+        leftWing.rotation.z = Math.PI / 18; // slight upward tilt (dihedral)
+        leftWing.castShadow = true;
+        vehicle.add(leftWing);
+
+        const rightWing = leftWing.clone();
+        rightWing.position.x = 3;
+        rightWing.rotation.z = -Math.PI / 18;
+        vehicle.add(rightWing);
+
+        // Tail horizontal stabilizer
+        const tailWingGeom = new THREE.BoxGeometry(3, 0.2, 1);
+        const tailWing = new THREE.Mesh(tailWingGeom, wingMaterial);
+        tailWing.position.set(5, 3, 0);
+        tailWing.castShadow = true;
+        vehicle.add(tailWing);
+
+        // Tail vertical stabilizer
+        const tailFinGeom = new THREE.BoxGeometry(0.2, 1.2, 1);
+        const tailFin = new THREE.Mesh(tailFinGeom, wingMaterial);
+        tailFin.position.set(5.2, 3.8, 0);
+        tailFin.castShadow = true;
+        vehicle.add(tailFin);
         
         return vehicle;
     }
@@ -2975,6 +3013,40 @@ class CarRacingGame {
             post.castShadow = false;
             this.scene.add(post);
         }
+    }
+
+    buildGemShopUI() {
+        const gemShopScreen = document.getElementById('gemShopScreen');
+        if (!gemShopScreen) return;
+
+        // ensure a grid container exists
+        let grid = document.getElementById('evolvedGrid');
+        if (!grid) {
+            grid = document.createElement('div');
+            grid.id = 'evolvedGrid';
+            grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;width:100%;max-width:1400px;';
+            gemShopScreen.insertBefore(grid, document.getElementById('closeGemShopBtn'));
+        }
+
+        // Populate entries
+        Object.entries(this.evolvedVehicleCatalog).forEach(([key,data]) => {
+            if (grid.querySelector(`[data-vehicle="${key}"]`)) return; // already added
+
+            const card = document.createElement('div');
+            card.className = 'evolved-vehicle-item';
+            card.style.cssText = 'background:rgba(255,255,255,0.1);padding:20px;border-radius:15px;border:2px solid #9900ff;text-align:center;';
+
+            card.innerHTML = `
+                <div style="font-size:60px;">${data.emoji}</div>
+                <h3 style="color:#9900ff;margin:10px 0;">${data.name}</h3>
+                <p style="font-size:14px;margin:10px 0;">Evolved performance vehicle.</p>
+                <button class="evolved-vehicle-btn" data-vehicle="${key}" data-cost="${data.cost}" style="padding:12px 25px;background:#9900ff;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:bold;font-size:16px;">Unlock for ${data.cost} 💎</button>`;
+
+            grid.appendChild(card);
+        });
+
+        // refresh display state for new buttons
+        this.updateGemShopDisplay();
     }
 }
 
