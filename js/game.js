@@ -1484,10 +1484,9 @@ class CarRacingGame {
                 return this.createEvolvedDuckHorseModel(vehicle, color);
             case 'evolved_rocket':
                 return this.createEvolvedRocketModel(vehicle, color);
+            // Fallback for any evolved models not yet implemented
             default:
-                if (vehicleType.startsWith('evolved_')) {
-                    return this.createGenericEvolvedModel(vehicle, color);
-                }
+                console.warn(`Model for ${vehicleType} not implemented, falling back to default car model.`);
                 return this.createCarModel(vehicle, color);
         }
     }
@@ -2381,6 +2380,14 @@ class CarRacingGame {
         // Setup gem shop and achievements
         this.setupGemShopButtons();
         this.setupAchievementsButtons();
+
+        // Mobile buttons
+        this.setupMobileControls();
+
+        // Shrink vehicle-option visuals for smaller UI on mobile/desktop
+        const style = document.createElement('style');
+        style.textContent = `.vehicle-option{width:90px;height:90px;font-size:12px;padding:8px}`;
+        document.head.appendChild(style);
     }
     
     setupGemShopButtons() {
@@ -3052,15 +3059,25 @@ class CarRacingGame {
         this.updateGemShopDisplay();
     }
 
-    // Generic evolved model (fallback) – sleek colored box with glow
-    createGenericEvolvedModel(vehicle, color) {
-        const bodyGeometry = new THREE.BoxGeometry(4, 1.2, 7);
-        const bodyMaterial = new THREE.MeshLambertMaterial({ color: color, emissive: new THREE.Color(color).multiplyScalar(0.3) });
-        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-        body.position.y = 1;
-        vehicle.add(body);
-        this.addWheelsToVehicle(vehicle);
-        return vehicle;
+    // 🚀 MOBILE CONTROLS
+    setupMobileControls() {
+        if (!('ontouchstart' in window)) return; // non-touch devices skip
+
+        const btnStyle = 'position:fixed;background:rgba(255,255,255,0.4);border:2px solid #666;border-radius:10px;width:60px;height:60px;z-index:300;display:flex;justify-content:center;align-items:center;font-size:24px;font-weight:bold;color:#000;';
+        const makeBtn = (txt,x,y)=>{const b=document.createElement('div');b.textContent=txt;b.style.cssText=btnStyle+`left:${x}px;bottom:${y}px;`;document.body.appendChild(b);return b};
+
+        const left = makeBtn('◀',20,100);
+        const right = makeBtn('▶',140,100);
+        const up = makeBtn('▲',80,170);
+        const down = makeBtn('▼',80,30);
+        const boost = makeBtn('⚡',window.innerWidth-80,100);
+
+        const map = new Map([[left,'KeyA'],[right,'KeyD'],[up,'KeyW'],[down,'KeyS'],[boost,'Space']]);
+        map.forEach((code,btn)=>{
+            btn.addEventListener('touchstart',e=>{e.preventDefault();this.keys[code]=true;});
+            btn.addEventListener('touchend',e=>{e.preventDefault();this.keys[code]=false;});
+        });
+        console.log('✅ Mobile touch controls enabled');
     }
 }
 
