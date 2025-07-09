@@ -1485,6 +1485,9 @@ class CarRacingGame {
             case 'evolved_rocket':
                 return this.createEvolvedRocketModel(vehicle, color);
             default:
+                if (vehicleType.startsWith('evolved_')) {
+                    return this.createGenericEvolvedModel(vehicle, color);
+                }
                 return this.createCarModel(vehicle, color);
         }
     }
@@ -3047,6 +3050,17 @@ class CarRacingGame {
 
         // refresh display state for new buttons
         this.updateGemShopDisplay();
+    }
+
+    // Generic evolved model (fallback) – sleek colored box with glow
+    createGenericEvolvedModel(vehicle, color) {
+        const bodyGeometry = new THREE.BoxGeometry(4, 1.2, 7);
+        const bodyMaterial = new THREE.MeshLambertMaterial({ color: color, emissive: new THREE.Color(color).multiplyScalar(0.3) });
+        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+        body.position.y = 1;
+        vehicle.add(body);
+        this.addWheelsToVehicle(vehicle);
+        return vehicle;
     }
 }
 
