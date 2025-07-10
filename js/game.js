@@ -1467,21 +1467,22 @@ class CarRacingGame {
             case 'evolved_car':
                 return this.createEvolvedCarModel(vehicle, color);
             case 'evolved_aeroplane':
-                return this.createEvolvedAeroplaneModel(vehicle, color);
+                // No specialised model yet – use car placeholder
+                return this.createEvolvedCarModel(vehicle, color);
             case 'evolved_ufo':
                 return this.createEvolvedUFOModel(vehicle, color);
             case 'evolved_toilet':
-                return this.createEvolvedToiletModel(vehicle, color);
+                return this.createEvolvedCarModel(vehicle, color);
             case 'evolved_tposing':
-                return this.createEvolvedTPosingModel(vehicle, color);
+                return this.createEvolvedCarModel(vehicle, color);
             case 'evolved_hyperchair':
-                return this.createEvolvedHyperChairModel(vehicle, color);
+                return this.createEvolvedCarModel(vehicle, color);
             case 'evolved_electriccar':
-                return this.createEvolvedElectricCarModel(vehicle, color);
+                return this.createEvolvedCarModel(vehicle, color);
             case 'evolved_shoppingcart':
-                return this.createEvolvedShoppingCartModel(vehicle, color);
+                return this.createEvolvedCarModel(vehicle, color);
             case 'evolved_duckhorse':
-                return this.createEvolvedDuckHorseModel(vehicle, color);
+                return this.createEvolvedCarModel(vehicle, color);
             case 'evolved_rocket':
                 return this.createEvolvedRocketModel(vehicle, color);
             // Fallback for any evolved models not yet implemented
@@ -2610,6 +2611,7 @@ class CarRacingGame {
         });
         
         this.updateUI();
+        this.setupMobileControls();   // create buttons once game view is active
     }
     
     updateUI() {
@@ -3074,7 +3076,10 @@ class CarRacingGame {
 
         const map = new Map([[left,'KeyA'],[right,'KeyD'],[up,'KeyW'],[down,'KeyS'],[boost,'Space']]);
         map.forEach((code,btn)=>{
-            btn.addEventListener('touchstart',e=>{e.preventDefault();this.keys[code]=true;});
+            btn.addEventListener('touchstart', e=>{
+                e.preventDefault();
+                this.keys[code]=true;
+            },{passive:false});
             btn.addEventListener('touchend',e=>{e.preventDefault();this.keys[code]=false;});
         });
         console.log('✅ Mobile touch controls enabled');
