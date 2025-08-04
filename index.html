@@ -119,9 +119,22 @@
     <style>
         /* Responsive tweaks for mobile */
         @media (max-width: 600px) {
+            /* Wrap large start-screen action buttons */
+            #startScreen div[style*="display: flex"][style*="gap"] {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            #startScreen button {
+                margin: 6px 6px;
+                font-size: 16px;
+                padding: 12px 18px;
+            }
+
             #coinCounter,
             #gemCounter,
-            #shopButton { right: 10px !important; }
+            #shopButton,
+            #openShopBtn { right: 10px !important; }
 
             #speedometer { bottom: 10px !important; right: 10px !important; }
             #boostMeter { bottom: 90px !important; right: 10px !important; }
