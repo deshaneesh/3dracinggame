@@ -99,6 +99,19 @@ class CarRacingGame {
             evolved_shoppingcart:{ name: 'MEGA MALL CART',       cost: 80,  emoji: '🛒' },
             evolved_duckhorse:   { name: 'MYTHIC QUACKALLOP',    cost: 95,  emoji: '🦆' }
         };
+
+        // 🧹 Clean up deprecated evolved vehicles no longer in the game
+        const deprecatedEvolved = ['evolved_aeroplane'];
+        let removed = false;
+        deprecatedEvolved.forEach(v => {
+            if (this.unlockedEvolvedVehicles[v]) {
+                delete this.unlockedEvolvedVehicles[v];
+                removed = true;
+            }
+        });
+        if (removed) {
+            localStorage.setItem('racingGameEvolvedVehicles', JSON.stringify(this.unlockedEvolvedVehicles));
+        }
     }
     
     init() {
