@@ -2814,19 +2814,22 @@ class CarRacingGame {
 
         const dist = Math.sqrt(this.car.position.x * this.car.position.x + this.car.position.z * this.car.position.z);
 
-        // Outer barrier – keep car inside
-        if (dist > this.outerRadius - 2) {
+        // Outer barrier – keep car inside rail (tube radius ≈1) so subtract 0.5 buffer
+        if (dist > this.outerRadius - 0.5) {
             const angle = Math.atan2(this.car.position.z, this.car.position.x);
             // reposition car just inside barrier
-            this.car.position.x = Math.cos(angle) * (this.outerRadius - 2);
-            this.car.position.z = Math.sin(angle) * (this.outerRadius - 2);
+            this.car.position.x = Math.cos(angle) * (this.outerRadius - 1.2);
+            this.car.position.z = Math.sin(angle) * (this.outerRadius - 1.2);
             // bounce effect
             this.carSpeed *= -0.4;
         }
 
-        // Inner boundary (grass infield) – optional slow-down
-        if (dist < this.innerRadius + 1) {
-            this.carSpeed *= 0.95; // slight slow-down when cutting inside
+        // Inner boundary – prevent cutting through inner rail
+        if (dist < this.innerRadius + 0.5) {
+            const angle = Math.atan2(this.car.position.z, this.car.position.x);
+            this.car.position.x = Math.cos(angle) * (this.innerRadius + 1.2);
+            this.car.position.z = Math.sin(angle) * (this.innerRadius + 1.2);
+            this.carSpeed *= -0.3; // small bounce
         }
     }
     
