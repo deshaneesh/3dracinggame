@@ -1440,12 +1440,13 @@ class CarRacingGame {
             this.aiCars.push(aiCar);
             
             this.aiCarsData.push({
-                speed: 0.4 + Math.random() * 0.1, // Much faster AI base speed
-                angle: startAngles[i],
+                speed: 0.4 + Math.random() * 0.1, // base speed
+                vehicleType: aiVehicleTypes[i],
+                drift: (Math.random() - 0.5) * 0.02, // steering drift per frame
+                mistakeTimer: Math.floor(Math.random() * 300) + 300, // frames until next mistake
                 trackRadius: trackRadius, // ALL on same track as checkpoints!
                 currentLap: 1,
                 lastCheckpoint: 0,
-                vehicleType: aiVehicleTypes[i]
             });
         }
         
@@ -2969,6 +2970,13 @@ class CarRacingGame {
             // Smaller variation for more stable driving
             const variation = Math.sin(time * 0.8 + index) * 0.01;
             aiCar.rotation.y += variation;
+            
+            // AI imperfection: drift & occasional mistakes
+            aiData.angle += aiData.drift;
+            if (aiData.mistakeTimer-- <= 0) {
+                aiData.speed *= 0.9;
+                aiData.mistakeTimer = Math.floor(Math.random() * 300) + 300;
+            }
             
             // Check AI checkpoints (disabled)
         });
