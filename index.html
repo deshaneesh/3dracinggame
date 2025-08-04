@@ -119,32 +119,18 @@
     <style>
         /* Responsive tweaks for mobile */
         @media (max-width: 600px) {
-            /* Wrap large start-screen action buttons */
-            #startScreen div[style*="display: flex"][style*="gap"] {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
+            body { overflow-x:hidden; }
 
-            #startScreen button {
-                margin: 6px 6px;
-                font-size: 16px;
-                padding: 12px 18px;
-            }
+            /* Force any flex rows on start screen to take full width buttons */
+            #startScreen button { flex: 1 1 120px; max-width: 160px; }
 
-            #coinCounter,
-            #gemCounter,
-            #shopButton,
-            #openShopBtn { right: 10px !important; }
+            /* Reduce evolved/shop buttons too */
+            #shopScreen button,
+            #gemShopScreen button,
+            #achievementsScreen button { font-size:14px !important; padding:10px 14px !important; }
 
-            #speedometer { bottom: 10px !important; right: 10px !important; }
-            #boostMeter { bottom: 90px !important; right: 10px !important; }
-
-            #minimap { top: 20px !important; right: 20px !important; transform: scale(0.8); transform-origin: top right; }
-
-            #lapInfo, #bestTime, #position, #vehicleInfo { left: 10px !important; }
-
-            /* Shrink vehicle selection cards */
-            .vehicle-option { width: 80px !important; height: 80px !important; padding: 6px !important; }
+            /* Further shrink vehicle-option content */
+            .vehicle-option div:first-child { font-size:32px !important; }
         }
     </style>
 </head>
