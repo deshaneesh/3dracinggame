@@ -45,7 +45,7 @@ class CarRacingGame {
         
         // Vehicle selection and trail system
         this.selectedVehicle = 'car';
-        this.vehicleTypes = ['car', 'aeroplane', 'ufo', 'toilet', 'tposing', 'hyperchair'];
+        this.vehicleTypes = ['car', 'ufo', 'toilet', 'tposing', 'hyperchair'];
         this.vehicleSelectionActive = true;
         this.fishingLines = []; // Array to store fishing line trail points
         
@@ -797,7 +797,7 @@ class CarRacingGame {
     
     isVehicleUnlocked(vehicle) {
         // Basic vehicles are always unlocked
-        const basicVehicles = ['car', 'aeroplane', 'ufo', 'toilet', 'tposing', 'hyperchair', 'electriccar', 'shoppingcart', 'duckhorse'];
+        const basicVehicles = ['car', 'ufo', 'toilet', 'tposing', 'hyperchair', 'electriccar', 'shoppingcart', 'duckhorse', 'walkingcooler'];
         if (basicVehicles.includes(vehicle)) return true;
         
         // Check if premium vehicle is unlocked
@@ -1400,7 +1400,7 @@ class CarRacingGame {
     createMultipleAICars() {
         // REDUCED to 2 AI cars for performance
         const aiColors = [0x0066ff, 0xff6600];
-        const aiVehicleTypes = ['car', 'aeroplane']; // Simpler vehicle types
+        const aiVehicleTypes = ['car', 'ufo']; // Aeroplane removed
         
         // ALL AI cars use the SAME track radius as checkpoints (dynamic)
         const trackRadius = this.trackRadius;
@@ -1441,8 +1441,6 @@ class CarRacingGame {
         switch(vehicleType) {
             case 'car':
                 return this.createCarModel(vehicle, color);
-            case 'aeroplane':
-                return this.createAeroplaneModel(vehicle, color);
             case 'ufo':
                 return this.createUFOModel(vehicle, color);
             case 'toilet':
