@@ -92,7 +92,6 @@ class CarRacingGame {
             evolved_car:         { name: 'EVOLVED RACING CAR',   cost: 100, emoji: '🏎️' },
             evolved_rocket:      { name: 'OMEGA ROCKET',         cost: 200, emoji: '🚀' },
             evolved_ufo:         { name: 'MOTHER SHIP UFO',      cost: 150, emoji: '🛸' },
-            evolved_aeroplane:   { name: 'JET FALCON',           cost: 120, emoji: '✈️' },
             evolved_toilet:      { name: 'GOLDEN THRONE',        cost: 90,  emoji: '🚽' },
             evolved_tposing:     { name: 'ALPHA HUMAN',          cost: 110, emoji: '🧍' },
             evolved_hyperchair:  { name: 'QUANTUM CHAIR',        cost: 130, emoji: '🚀' },
@@ -827,7 +826,6 @@ class CarRacingGame {
             evolved_car: '🏎️',
             evolved_rocket: '🚀',
             evolved_ufo: '🛸',
-            evolved_aeroplane: '✈️',
             evolved_toilet: '🚽',
             evolved_tposing: '🧍',
             evolved_hyperchair: '🚀',
@@ -1463,9 +1461,6 @@ class CarRacingGame {
                 return this.createWalkingCoolerModel(vehicle, color);
             // 🔥 EVOLVED VEHICLES 🔥
             case 'evolved_car':
-                return this.createEvolvedCarModel(vehicle, color);
-            case 'evolved_aeroplane':
-                // No specialised model yet – use car placeholder
                 return this.createEvolvedCarModel(vehicle, color);
             case 'evolved_ufo':
                 return this.createEvolvedUFOModel(vehicle, color);
@@ -2139,7 +2134,6 @@ class CarRacingGame {
             
             // 🔥 EVOLVED VEHICLES - LEGENDARY TIER! 🔥
             evolved_car: { maxSpeed: 5.0, acceleration: 4.0, turning: 2.0 }, // 🏎️ LEGENDARY SUPERCAR
-            evolved_aeroplane: { maxSpeed: 6.0, acceleration: 3.5, turning: 1.5 }, // ✈️ JET FIGHTER
             evolved_ufo: { maxSpeed: 5.5, acceleration: 4.5, turning: 3.0 }, // 🛸 MOTHER SHIP
             evolved_toilet: { maxSpeed: 3.5, acceleration: 3.0, turning: 2.8 }, // 🚽 GOLDEN THRONE
             evolved_tposing: { maxSpeed: 4.0, acceleration: 3.8, turning: 2.5 }, // 🧍 ULTIMATE POWER STANCE
