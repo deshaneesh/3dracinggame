@@ -251,13 +251,8 @@ class CarRacingGame {
         const outerRadius = this.outerRadius;
         const innerRadius = this.innerRadius;
         
-        // Track surface (ring shape for loop)
-        const trackGeometry = new THREE.RingGeometry(innerRadius, outerRadius, 128);
-        const trackMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 });
-        this.track = new THREE.Mesh(trackGeometry, trackMaterial);
-        this.track.rotation.x = -Math.PI / 2;
-        this.track.position.y = 0.01;
-        this.scene.add(this.track);
+        // Build a circular track made of three arc segments, leaving gaps players must jump
+        this.createRingSegments(outerRadius, innerRadius);
         
         // No borders - free driving on the massive track!
         
@@ -271,7 +266,7 @@ class CarRacingGame {
         this.createBarriers(outerRadius);
 
         // Draw continuous visual borders along inner and outer edges
-        this.createTrackBorders(outerRadius, innerRadius);
+        // this.createTrackBorders(outerRadius, innerRadius);
 
         // Moving obstacles & jump pads
         this.createMovingObstacles(outerRadius, innerRadius);
@@ -2891,6 +2886,12 @@ class CarRacingGame {
                 }
             }
         }
+
+        // Collision with moving obstacle arms
+        // this.movingObstacles.forEach(o => {
+        //     // Arm world position (approx end point)
+        //     const armEnd = new THREE.Vector3(armLength=0,0,0);
+        // });
     }
     
     playCollisionSound() {
@@ -3161,7 +3162,7 @@ class CarRacingGame {
 
     createJumpPads(outerRadius, innerRadius) {
         this.jumpPads = [];
-        const padGeom = new THREE.CylinderGeometry(4, 4, 0.5, 16);
+        const padGeom = new THREE.CylinderGeometry(8, 8, 0.8, 32);
         const padMat  = new THREE.MeshLambertMaterial({ color: 0x00ff7f, emissive: 0x004400 });
 
         const padAngles = [Math.PI / 4, (3 * Math.PI) / 4, (5 * Math.PI) / 4];
@@ -3174,7 +3175,7 @@ class CarRacingGame {
             mesh.rotation.x = Math.PI / 2;
             mesh.position.set(x, 0.3, z);
             this.scene.add(mesh);
-            this.jumpPads.push({ position: new THREE.Vector3(x, 0, z), radius: 6 });
+            this.jumpPads.push({ position: new THREE.Vector3(x, 0, z), radius: 10 });
         });
     }
 
@@ -3193,12 +3194,38 @@ class CarRacingGame {
             const dist = this.car.position.distanceTo(pad.position);
             if (dist < pad.radius && now - this._lastPadTime > 1000) {
                 // small speed & Y boost
-                this.carSpeed += 0.3;
-                this.car.position.y += 3;
+                this.carSpeed = Math.max(this.carSpeed, 1) + 0.5;
+                this.car.position.y += 6;
                 this._lastPadTime = now;
                 this.playBoostSound();
             }
         });
+    }
+
+    // Generate three arc pieces to form track with gaps
+    createRingSegments(outerRadius, innerRadius) {
+        // Remove old track if exists
+        if (this.trackGroup) {
+            this.scene.remove(this.trackGroup);
+        }
+
+        this.trackGroup = new THREE.Group();
+        const arcCount = 3;
+        const gapSize = Math.PI / 6; // 30° gaps
+        const segmentLength = (Math.PI * 2 - arcCount * gapSize) / arcCount;
+
+        const segMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 });
+
+        for (let i = 0; i < arcCount; i++) {
+            const thetaStart = i * (segmentLength + gapSize);
+            const segmentGeom = new THREE.RingGeometry(innerRadius, outerRadius, 64, 1, thetaStart, segmentLength);
+            const mesh = new THREE.Mesh(segmentGeom, segMaterial);
+            mesh.rotation.x = -Math.PI / 2;
+            mesh.position.y = 0.01;
+            this.trackGroup.add(mesh);
+        }
+
+        this.scene.add(this.trackGroup);
     }
 }
 
