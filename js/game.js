@@ -2813,6 +2813,9 @@ class CarRacingGame {
         
         // Check for jump pad interaction
         this.checkJumpPads();
+        
+        // Check collision with rotating obstacle arms
+        this.checkObstacleCollisions();
     }
     
     checkBoundaries() {
@@ -3156,7 +3159,7 @@ class CarRacingGame {
             pivot.add(arm);
             this.scene.add(pivot);
 
-            this.movingObstacles.push({ pivot, speed: 0.005 + 0.002 * i });
+            this.movingObstacles.push({ pivot, speed: 0.005 + 0.002 * i, midRadius: (innerRadius + outerRadius) / 2, armLength });
         }
     }
 
@@ -3226,6 +3229,32 @@ class CarRacingGame {
         }
 
         this.scene.add(this.trackGroup);
+    }
+
+    // Detect collisions between player car and rotating obstacle arms
+    checkObstacleCollisions() {
+        if (!this.car || this.movingObstacles.length === 0) return;
+
+        const carAngle = Math.atan2(this.car.position.z, this.car.position.x);
+        const carDist  = Math.sqrt(this.car.position.x ** 2 + this.car.position.z ** 2);
+
+        this.movingObstacles.forEach(o => {
+            const armAngle = o.pivot.rotation.y;
+            // Normalize angle difference to [-PI, PI]
+            let diff = carAngle - armAngle;
+            diff = ((diff + Math.PI) % (Math.PI * 2)) - Math.PI;
+
+            // Angular half-width of arm (approx) – arm thickness / radius
+            const halfWidth = 0.1; // ~6°
+
+            if (Math.abs(diff) < halfWidth && carDist > this.innerRadius && carDist < this.outerRadius) {
+                // Collision! Push car opposite to arm direction and damp speed
+                const pushDir = new THREE.Vector3(Math.cos(armAngle), 0, Math.sin(armAngle));
+                this.car.position.add(pushDir.multiplyScalar(2));
+                this.carSpeed *= -0.3;
+                this.playCollisionSound();
+            }
+        });
     }
 }
 
