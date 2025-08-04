@@ -202,6 +202,15 @@
             <p style="font-size: 16px; color: #FFD700;">💰 Press "I" for infinite coins cheat! 💰</p>
         </div>
         
+        <div style="text-align:center;margin:20px 0;">
+            <label for="themeSelect" style="font-size:18px;color:#fff;margin-right:8px;">Map Theme:</label>
+            <select id="themeSelect" style="font-size:18px;padding:4px 10px;">
+                <option value="grass">Grasslands</option>
+                <option value="desert">Desert</option>
+                <option value="candy">Candy Land</option>
+            </select>
+        </div>
+
         <div style="display: flex; gap: 20px; justify-content: center; margin: 20px 0;">
             <button id="startButton">🏁 START EPIC RACE! 🏁</button>
             <button id="shopButton" onclick="window.game && window.game.openShop ? window.game.openShop() : console.error('Shop not ready')" style="padding: 15px 30px; font-size: 20px; background: #FFD700; color: black; border: none; border-radius: 10px; cursor: pointer; pointer-events: auto; font-weight: bold;">🛒 COIN SHOP 🛒</button>

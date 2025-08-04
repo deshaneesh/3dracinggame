@@ -120,6 +120,14 @@ class CarRacingGame {
         // Lap system
         this.lapCount = 0;
         this.prevCarAngle = null; // for lap detection
+
+        // Theme selection
+        this.selectedTheme = (document.getElementById('themeSelect') && document.getElementById('themeSelect').value) || 'grass';
+        if (document.getElementById('themeSelect')) {
+            document.getElementById('themeSelect').addEventListener('change', (e)=>{
+                this.selectedTheme = e.target.value;
+            });
+        }
     }
     
     init() {
@@ -186,7 +194,9 @@ class CarRacingGame {
     createScene() {
         // Create scene
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(0x87CEEB); // Sky blue
+
+        const skyColors = {grass:0x87CEEB, desert:0xFFDEAD, candy:0xFFB6C1};
+        this.scene.background = new THREE.Color(skyColors[this.selectedTheme] || 0x87CEEB);
         
         // Create renderer
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -235,7 +245,8 @@ class CarRacingGame {
         // Create ground large enough to comfortably fit the selected circuit
         const groundSize = (this.outerRadius + 200) * 2; // extra buffer around the track
         const groundGeometry = new THREE.PlaneGeometry(groundSize, groundSize);
-        const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 }); // Forest green
+        const groundColors = {grass:0x228B22, desert:0xC2B280, candy:0xFFC0CB};
+        const groundMaterial = new THREE.MeshLambertMaterial({ color: groundColors[this.selectedTheme] || 0x228B22 });
         const ground = new THREE.Mesh(groundGeometry, groundMaterial);
         ground.rotation.x = -Math.PI / 2;
         ground.receiveShadow = true;
