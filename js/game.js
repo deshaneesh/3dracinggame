@@ -265,6 +265,9 @@ class CarRacingGame {
         
         // Create protective barriers at outer edge of circuit
         this.createBarriers(outerRadius);
+
+        // Draw continuous visual borders along inner and outer edges
+        this.createTrackBorders(outerRadius, innerRadius);
     }
     
     createLoopCheckpoints(outerRadius, innerRadius) {
@@ -3088,6 +3091,36 @@ class CarRacingGame {
             btn.addEventListener('touchend',e=>{e.preventDefault();this.keys[code]=false;});
         });
         console.log('✅ Mobile touch controls enabled');
+    }
+
+    // Continuous border rails at both inner and outer edge of the circuit
+    createTrackBorders(outerRadius, innerRadius) {
+        if (this.trackBordersGroup) {
+            // Remove previous borders if recreating track
+            this.scene.remove(this.trackBordersGroup);
+        }
+
+        this.trackBordersGroup = new THREE.Group();
+
+        const tubeRadius = 1; // thickness of the rail
+        const segments = 256;
+        const railMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+
+        // Helper to make a torus ring lying flat on ground
+        const makeRail = (radius) => {
+            const geom = new THREE.TorusGeometry(radius, tubeRadius, 8, segments);
+            const mesh = new THREE.Mesh(geom, railMaterial);
+            mesh.rotation.x = Math.PI / 2; // lay flat
+            mesh.position.y = tubeRadius; // slightly above ground
+            mesh.receiveShadow = false;
+            mesh.castShadow = false;
+            return mesh;
+        };
+
+        this.trackBordersGroup.add(makeRail(outerRadius + 0.5));
+        this.trackBordersGroup.add(makeRail(innerRadius - 0.5));
+
+        this.scene.add(this.trackBordersGroup);
     }
 }
 
