@@ -1,6 +1,10 @@
 // 3D Car Racing Game - OPTIMIZED FOR PERFORMANCE
 class CarRacingGame {
     constructor() {
+        // === SECRET VEHICLE STATE ===
+        this.secretUnlocked = localStorage.getItem('racingGameSecretUnlocked') === 'true';
+        this.totalPlayTime = parseFloat(localStorage.getItem('racingGamePlayTime')||'0');
+
         this.scene = null;
         this.camera = null;
         this.renderer = null;
@@ -192,6 +196,9 @@ class CarRacingGame {
             
             // Update vehicle selection based on unlocks
             this.updateVehicleSelection();
+
+            // Periodically check if secret vehicle should unlock
+            setInterval(()=>this.checkSecretUnlock(), 5000);
             
         } catch (error) {
             console.error('❌ Game initialization failed:', error);
@@ -844,6 +851,7 @@ class CarRacingGame {
         // Basic vehicles are always unlocked
         const basicVehicles = ['car', 'ufo', 'toilet', 'tposing', 'hyperchair', 'electriccar', 'shoppingcart', 'duckhorse', 'walkingcooler'];
         if (basicVehicles.includes(vehicle)) return true;
+        if (vehicle==='secret' && this.secretUnlocked) return true;
         
         // Check if premium vehicle is unlocked
         const unlockedVehicles = JSON.parse(localStorage.getItem('racingGameUnlockedVehicles') || '[]');
@@ -851,6 +859,18 @@ class CarRacingGame {
     }
     
     updateVehicleSelection() {
+        // Add secret vehicle tile if unlocked and not present
+        if (this.secretUnlocked && !document.querySelector('.vehicle-option[data-vehicle="secret"]')) {
+            const container = document.getElementById('vehicleSelection');
+            if (container) {
+                const div = document.createElement('div');
+                div.className = 'vehicle-option';
+                div.dataset.vehicle = 'secret';
+                div.style.cssText = 'margin:10px;padding:15px;border:3px solid #ff00ff;border-radius:10px;cursor:pointer;text-align:center;background:rgba(255,255,255,0.1);';
+                div.innerHTML = '<div style="font-size:40px;">🌀</div><div style="font-weight:bold;margin-top:5px;">???</div><div style="font-size:12px;">Mysterious power</div>';
+                container.appendChild(div);
+            }
+        }
         // Enable/disable vehicle options based on unlock status
         document.querySelectorAll('.vehicle-option').forEach(option => {
             const vehicle = option.getAttribute('data-vehicle');
@@ -899,7 +919,33 @@ class CarRacingGame {
             });
         });
     }
-    
+
+    // === SECRET VEHICLE UNLOCK LOGIC ===
+    checkSecretUnlock() {
+        if (this.secretUnlocked) return;
+
+        // Condition 1: all achievements complete
+        const allAchieved = Object.values(this.achievements || {}).every(a => a.completed);
+
+        // Condition 2: all vehicles + upgrades unlocked (rough check)
+        const allUnlocked = (document.querySelectorAll('.vehicle-option').length >= 10 && Object.keys(this.unlockedEvolvedVehicles||{}).length >= Object.keys(this.evolvedVehicleCatalog||{}).length);
+
+        // Condition 3: play time >= 1000 hours (milliseconds) – for testing we treat 5 minutes as 1000h if cheat code not used
+        const HOURS_REQUIRED = 1000;
+        const requirementMet = this.totalPlayTime >= HOURS_REQUIRED * 3600;
+
+        if (allAchieved && allUnlocked && requirementMet) {
+            this.unlockSecretVehicle();
+        }
+    }
+
+    unlockSecretVehicle() {
+        this.secretUnlocked = true;
+        localStorage.setItem('racingGameSecretUnlocked','true');
+        this.updateVehicleSelection();
+        alert('🌌 SECRET VEHICLE UNLOCKED! Click its tile to select.');
+    }
+
     playPurchaseSound() {
         if (!this.audioInitialized) return;
         
@@ -1543,6 +1589,8 @@ class CarRacingGame {
                 return this.createShopVehicleModel(vehicle, color);
             case 'walkingcooler':
                 return this.createWalkingCoolerModel(vehicle, color);
+            case 'secret':
+                return this.createSecretVehicleModel(vehicle, color);
             // 🔥 EVOLVED VEHICLES 🔥
             case 'evolved_car':
                 return this.createEvolvedCarModel(vehicle, color);
@@ -2120,6 +2168,7 @@ class CarRacingGame {
     
     createEvolvedUFOModel(vehicle, color) {
         // MOTHER SHIP UFO - Massive alien craft
+        // MOTHER SHIP UFO - Massive alien craft
         const discGeometry = new THREE.CylinderGeometry(6, 6, 1.5);
         const disc = new THREE.Mesh(discGeometry, new THREE.MeshLambertMaterial({ 
             color: color, 
@@ -2150,7 +2199,21 @@ class CarRacingGame {
         
         return vehicle;
     }
-    
+
+    createSecretVehicleModel(vehicle,color){
+        const orbGeom=new THREE.SphereGeometry(2.5,32,32);
+        const orbMat=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.85});
+        const orb=new THREE.Mesh(orbGeom,orbMat);
+        orb.position.y=2.5;
+        vehicle.add(orb);
+        const haloGeom=new THREE.TorusGeometry(3.5,0.3,16,32);
+        const haloMat=new THREE.MeshBasicMaterial({color:0xff00ff,transparent:true,opacity:0.6});
+        const halo=new THREE.Mesh(haloGeom,haloMat);
+        halo.rotation.x=Math.PI/2;
+        vehicle.add(halo);
+        return vehicle;
+    }
+
     addWheelsToVehicle(vehicle) {
         const wheelPositions = [
             { x: -2, z: 3 }, { x: 2, z: 3 }, { x: -2, z: -3 }, { x: 2, z: -3 }
@@ -2424,6 +2487,18 @@ class CarRacingGame {
             if (e.code === 'KeyC') {
                 console.log('🔄 Changing circuit...');
                 location.reload();
+            }
+        });
+
+        // CLICK TO TELEPORT for secret vehicle
+        document.addEventListener('click', (evt)=>{
+            if(this.selectedVehicle==='secret' && this.car){
+                // Teleport forward along facing direction (simple radial)
+                const angle=Math.atan2(this.car.position.z,this.car.position.x)+Math.PI/2;
+                const radius=this.trackRadius;
+                this.car.position.set(Math.cos(angle)*radius,2,Math.sin(angle)*radius);
+                this.carSpeed=1;
+                this.playBoostSound();
             }
         });
         
@@ -3082,6 +3157,14 @@ class CarRacingGame {
         
         this.frameCount++;
         const now = performance.now();
+        // Track total play time for secret vehicle
+        if (!this._lastFrameTs) this._lastFrameTs = now;
+        const dt = now - this._lastFrameTs;
+        this.totalPlayTime += dt / 1000; // seconds
+        if (this.frameCount % 600 === 0) {
+            localStorage.setItem('racingGamePlayTime', this.totalPlayTime.toFixed(1));
+        }
+        this._lastFrameTs = now;
         
         // Track distance traveled for achievements
         if (this.gameStarted && this.car && this.lastCarPosition) {
