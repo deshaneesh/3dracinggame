@@ -112,6 +112,10 @@ class CarRacingGame {
         if (removed) {
             localStorage.setItem('racingGameEvolvedVehicles', JSON.stringify(this.unlockedEvolvedVehicles));
         }
+
+        // Dynamic obstacle & jump pad arrays
+        this.movingObstacles = [];
+        this.jumpPads = [];
     }
     
     init() {
@@ -268,6 +272,10 @@ class CarRacingGame {
 
         // Draw continuous visual borders along inner and outer edges
         this.createTrackBorders(outerRadius, innerRadius);
+
+        // Moving obstacles & jump pads
+        this.createMovingObstacles(outerRadius, innerRadius);
+        this.createJumpPads(outerRadius, innerRadius);
     }
     
     createLoopCheckpoints(outerRadius, innerRadius) {
@@ -2807,6 +2815,9 @@ class CarRacingGame {
         this.checkBoundaries();
         // Checkpoints disabled
         this.checkCarCollision();
+        
+        // Check for jump pad interaction
+        this.checkJumpPads();
     }
     
     checkBoundaries() {
@@ -2984,6 +2995,7 @@ class CarRacingGame {
         // PERFORMANCE OPTIMIZATION: Reduce update frequency for non-critical elements
         this.updateCarPhysics();
         this.updateAllAICarsPhysics();
+        this.updateMovingObstacles();
         this.updateCamera();
         
         // Update UI every 3 frames for better performance
@@ -3124,6 +3136,69 @@ class CarRacingGame {
         this.trackBordersGroup.add(makeRail(innerRadius - 0.5));
 
         this.scene.add(this.trackBordersGroup);
+    }
+
+    // === OBSTACLES & JUMP PADS ===
+    createMovingObstacles(outerRadius, innerRadius) {
+        this.movingObstacles = [];
+
+        const armLength = (outerRadius - innerRadius) + 4; // extend a bit past track width
+        const armGeom = new THREE.BoxGeometry(armLength, 1, 1);
+        const armMat  = new THREE.MeshLambertMaterial({ color: 0xffaa00 });
+
+        const armCount = 3;
+        for (let i = 0; i < armCount; i++) {
+            const pivot = new THREE.Object3D();
+            const arm = new THREE.Mesh(armGeom, armMat);
+            arm.position.x = (innerRadius + outerRadius) / 2;
+            arm.position.y = 2;
+            pivot.add(arm);
+            this.scene.add(pivot);
+
+            this.movingObstacles.push({ pivot, speed: 0.005 + 0.002 * i });
+        }
+    }
+
+    createJumpPads(outerRadius, innerRadius) {
+        this.jumpPads = [];
+        const padGeom = new THREE.CylinderGeometry(4, 4, 0.5, 16);
+        const padMat  = new THREE.MeshLambertMaterial({ color: 0x00ff7f, emissive: 0x004400 });
+
+        const padAngles = [Math.PI / 4, (3 * Math.PI) / 4, (5 * Math.PI) / 4];
+        const radius = (outerRadius + innerRadius) / 2;
+
+        padAngles.forEach(angle => {
+            const x = Math.cos(angle) * radius;
+            const z = Math.sin(angle) * radius;
+            const mesh = new THREE.Mesh(padGeom, padMat);
+            mesh.rotation.x = Math.PI / 2;
+            mesh.position.set(x, 0.3, z);
+            this.scene.add(mesh);
+            this.jumpPads.push({ position: new THREE.Vector3(x, 0, z), radius: 6 });
+        });
+    }
+
+    updateMovingObstacles() {
+        this.movingObstacles.forEach(o => {
+            o.pivot.rotation.y += o.speed;
+        });
+    }
+
+    checkJumpPads() {
+        if (!this.car) return;
+        const now = performance.now();
+        if (!this._lastPadTime) this._lastPadTime = 0;
+
+        this.jumpPads.forEach(pad => {
+            const dist = this.car.position.distanceTo(pad.position);
+            if (dist < pad.radius && now - this._lastPadTime > 1000) {
+                // small speed & Y boost
+                this.carSpeed += 0.3;
+                this.car.position.y += 3;
+                this._lastPadTime = now;
+                this.playBoostSound();
+            }
+        });
     }
 }
 
