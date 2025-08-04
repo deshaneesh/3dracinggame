@@ -1224,6 +1224,8 @@ class CarRacingGame {
             );
         }
         
+        // Spawn Easter egg once
+        this.createDucksDrinkingMoon();
         console.log(`🌄 Environment created for ${this.selectedTheme} theme (12 decorations, 6 clouds)`);
     }
     
@@ -1259,6 +1261,68 @@ class CarRacingGame {
         const body = new THREE.Mesh(bodyGeom, bodyMat);
         body.position.set(x, 3, z);
         this.scene.add(body);
+    }
+
+    createCandyCane(x, z) {
+        const d = Math.sqrt(x*x + z*z);
+        if (d < this.outerRadius + 20 && d > this.innerRadius - 20) return;
+
+        const stemGeom = new THREE.CylinderGeometry(0.5, 0.5, 6, 12);
+        const stemMat  = new THREE.MeshLambertMaterial({ color: 0xffffff });
+        const stem = new THREE.Mesh(stemGeom, stemMat);
+        stem.position.set(x, 3, z);
+
+        const hookGeom = new THREE.TorusGeometry(2, 0.5, 8, 16, Math.PI);
+        const hookMat  = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+        const hook = new THREE.Mesh(hookGeom, hookMat);
+        hook.rotation.z = Math.PI / 2;
+        hook.position.set(x, 6, z - 1);
+
+        this.scene.add(stem);
+        this.scene.add(hook);
+    }
+
+    // === DUCKS DRINKING THE MOON EASTER EGG ===
+    createDucksDrinkingMoon(){
+        // Place far outside track so only explorers find it
+        const x = this.outerRadius + 120;
+        const z = 0;
+        // Moon
+        const moonGeo = new THREE.SphereGeometry(6,32,32);
+        const moonMat = new THREE.MeshLambertMaterial({color:0xffffff,emissive:0xffffee});
+        const moon = new THREE.Mesh(moonGeo, moonMat);
+        moon.position.set(x,6,z);
+        this.scene.add(moon);
+        // Water plane (simple blue disc)
+        const waterGeo = new THREE.CylinderGeometry(15,15,0.2,32);
+        const waterMat = new THREE.MeshLambertMaterial({color:0x3366ff,transparent:true,opacity:0.6});
+        const water = new THREE.Mesh(waterGeo, waterMat);
+        water.position.set(x,0.1,z);
+        water.rotation.x=Math.PI/2;
+        this.scene.add(water);
+        // Ducks
+        const duckOffsets=[[ -4,2],[0,3],[4,2]];
+        duckOffsets.forEach(([dx,dz])=>{
+            const duck=this.createSimpleDuck();
+            duck.position.set(x+dx,1.5,z+dz);
+            duck.lookAt(moon.position);
+            this.scene.add(duck);
+        });
+    }
+
+    createSimpleDuck(){
+        const duck=new THREE.Group();
+        const body = new THREE.Mesh(new THREE.SphereGeometry(1.2,16,16), new THREE.MeshLambertMaterial({color:0xffff00}));
+        body.position.y=1;
+        duck.add(body);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.7,16,16), new THREE.MeshLambertMaterial({color:0xffff00}));
+        head.position.set(0,2,0.8);
+        duck.add(head);
+        const beak = new THREE.Mesh(new THREE.ConeGeometry(0.3,0.5,8), new THREE.MeshLambertMaterial({color:0xff8800}));
+        beak.position.set(0,1.9,1.4);
+        beak.rotation.x=Math.PI/2;
+        duck.add(beak);
+        return duck;
     }
 
     createCandyCane(x, z) {
