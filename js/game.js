@@ -128,6 +128,15 @@ class CarRacingGame {
                 this.selectedTheme = e.target.value;
             });
         }
+
+        // Difficulty selection
+        this.selectedDifficulty = (document.getElementById('difficultySelect') && document.getElementById('difficultySelect').value) || 'easy';
+        const diffSel = document.getElementById('difficultySelect');
+        if (diffSel) {
+            diffSel.addEventListener('change', (e)=>{
+                this.selectedDifficulty = e.target.value;
+            });
+        }
     }
     
     init() {
@@ -1146,12 +1155,18 @@ class CarRacingGame {
     }
     
     createEnvironment() {
-        // DRASTICALLY REDUCED for performance - 12 trees instead of 80
+        // Environment decoration based on theme
+        const theme = this.selectedTheme;
         for (let i = 0; i < 12; i++) {
-            this.createTree(
-                (Math.random() - 0.5) * 400, // Smaller area
-                (Math.random() - 0.5) * 400
-            );
+            const x = (Math.random() - 0.5) * 400;
+            const z = (Math.random() - 0.5) * 400;
+            if (theme === 'desert') {
+                this.createCactus(x, z);
+            } else if (theme === 'candy') {
+                this.createCandyCane(x, z);
+            } else {
+                this.createTree(x, z);
+            }
         }
         
         // DRASTICALLY REDUCED for performance - 6 clouds instead of 30
@@ -1163,7 +1178,7 @@ class CarRacingGame {
             );
         }
         
-        console.log('🌲 Environment optimized for performance! (12 trees, 6 clouds)');
+        console.log(`🌄 Environment created for ${this.selectedTheme} theme (12 decorations, 6 clouds)`);
     }
     
     createTree(x, z) {
@@ -1187,7 +1202,38 @@ class CarRacingGame {
         foliage.castShadow = false; // DISABLED for performance
         this.scene.add(foliage);
     }
-    
+
+    createCactus(x, z) {
+        // Avoid placing decorations on track
+        const d = Math.sqrt(x*x + z*z);
+        if (d < this.outerRadius + 20 && d > this.innerRadius - 20) return;
+
+        const bodyGeom = new THREE.CylinderGeometry(0.7, 0.9, 6, 6);
+        const bodyMat  = new THREE.MeshLambertMaterial({ color: 0x228B22 });
+        const body = new THREE.Mesh(bodyGeom, bodyMat);
+        body.position.set(x, 3, z);
+        this.scene.add(body);
+    }
+
+    createCandyCane(x, z) {
+        const d = Math.sqrt(x*x + z*z);
+        if (d < this.outerRadius + 20 && d > this.innerRadius - 20) return;
+
+        const stemGeom = new THREE.CylinderGeometry(0.5, 0.5, 6, 12);
+        const stemMat  = new THREE.MeshLambertMaterial({ color: 0xffffff });
+        const stem = new THREE.Mesh(stemGeom, stemMat);
+        stem.position.set(x, 3, z);
+
+        const hookGeom = new THREE.TorusGeometry(2, 0.5, 8, 16, Math.PI);
+        const hookMat  = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+        const hook = new THREE.Mesh(hookGeom, hookMat);
+        hook.rotation.z = Math.PI / 2;
+        hook.position.set(x, 6, z - 1);
+
+        this.scene.add(stem);
+        this.scene.add(hook);
+    }
+
     createCloud(x, y, z) {
         const cloudGeometry = new THREE.SphereGeometry(5);
         const cloudMaterial = new THREE.MeshLambertMaterial({ 
@@ -1458,7 +1504,7 @@ class CarRacingGame {
             this.aiCars.push(aiCar);
             
             this.aiCarsData.push({
-                speed: 0.4 + Math.random() * 0.1, // base speed
+                speed: (0.4 + Math.random() * 0.1) * this.getDifficultySpeedFactor(), // base speed scaled by difficulty
                 vehicleType: aiVehicleTypes[i],
                 drift: (Math.random() - 0.5) * 0.02, // steering drift per frame
                 mistakeTimer: Math.floor(Math.random() * 300) + 300, // frames until next mistake
@@ -2154,6 +2200,18 @@ class CarRacingGame {
         this.fishingLines = []; // Array to store trail points
     }
     
+    getDifficultySpeedFactor() {
+        switch(this.selectedDifficulty) {
+            case 'hellish': return 1.8;
+            case 'impossible': return 1.6;
+            case 'extreme': return 1.4;
+            case 'insane': return 1.2;
+            case 'hard': return 1.0;
+            case 'easy':
+            default: return 0.8;
+        }
+    }
+
     getVehicleMultipliers() {
         const multipliers = {
             // 🚀 ORIGINAL VEHICLES - MASSIVELY BOOSTED! 🚀
@@ -3188,7 +3246,8 @@ class CarRacingGame {
         const armGeom = new THREE.BoxGeometry(armLength, 1, 1);
         const armMat  = new THREE.MeshLambertMaterial({ color: 0xffaa00 });
 
-        const armCount = 3;
+        const diffFactor = this.getDifficultySpeedFactor();
+        const armCount = Math.min(6, Math.round(2 + diffFactor * 2));
         for (let i = 0; i < armCount; i++) {
             const pivot = new THREE.Object3D();
             const arm = new THREE.Mesh(armGeom, armMat);
@@ -3197,7 +3256,7 @@ class CarRacingGame {
             pivot.add(arm);
             this.scene.add(pivot);
 
-            this.movingObstacles.push({ pivot, speed: 0.005 + 0.002 * i, midRadius: (innerRadius + outerRadius) / 2, armLength });
+            this.movingObstacles.push({ pivot, speed: (0.005 + 0.002 * i) * diffFactor, midRadius: (innerRadius + outerRadius) / 2, armLength });
         }
     }
 

@@ -211,6 +211,18 @@
             </select>
         </div>
 
+        <div style="text-align:center;margin:20px 0;">
+            <label for="difficultySelect" style="font-size:18px;color:#fff;margin-right:8px;">Difficulty:</label>
+            <select id="difficultySelect" style="font-size:18px;padding:4px 10px;">
+                <option value="easy">Easy</option>
+                <option value="hard">Hard</option>
+                <option value="insane">Insane</option>
+                <option value="extreme">Extreme</option>
+                <option value="impossible">Impossible</option>
+                <option value="hellish">Hellish</option>
+            </select>
+        </div>
+        
         <div style="display: flex; gap: 20px; justify-content: center; margin: 20px 0;">
             <button id="startButton">🏁 START EPIC RACE! 🏁</button>
             <button id="shopButton" onclick="window.game && window.game.openShop ? window.game.openShop() : console.error('Shop not ready')" style="padding: 15px 30px; font-size: 20px; background: #FFD700; color: black; border: none; border-radius: 10px; cursor: pointer; pointer-events: auto; font-weight: bold;">🛒 COIN SHOP 🛒</button>
