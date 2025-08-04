@@ -116,6 +116,10 @@ class CarRacingGame {
         // Dynamic obstacle & jump pad arrays
         this.movingObstacles = [];
         this.jumpPads = [];
+
+        // Lap system
+        this.lapCount = 0;
+        this.prevCarAngle = null; // for lap detection
     }
     
     init() {
@@ -271,6 +275,9 @@ class CarRacingGame {
         // Moving obstacles & jump pads
         this.createMovingObstacles(outerRadius, innerRadius);
         this.createJumpPads(outerRadius, innerRadius);
+
+        // Finish line
+        this.createFinishLine(outerRadius);
     }
     
     createLoopCheckpoints(outerRadius, innerRadius) {
@@ -2817,6 +2824,18 @@ class CarRacingGame {
         
         // Check collision with rotating obstacle arms
         this.checkObstacleCollisions();
+
+        // after this.checkObstacleCollisions(); ensure prevCarAngle handling at start
+        // Lap detection
+        const currentAngle = Math.atan2(this.car.position.z, this.car.position.x);
+        if (this.prevCarAngle !== null) {
+            // Detect crossing from quadrant IV to I (roughly -π to π wrap)
+            if (this.prevCarAngle > 2.5 && currentAngle < 0.6) {
+                this.lapCount++;
+                console.log(`🏁 Lap ${this.lapCount}`);
+            }
+        }
+        this.prevCarAngle = currentAngle;
     }
     
     checkBoundaries() {
@@ -3263,6 +3282,19 @@ class CarRacingGame {
                 this.playCollisionSound();
             }
         });
+    }
+
+    // Simple finish line at angle 0 (x positive axis)
+    createFinishLine(outerRadius) {
+        if (this.finishLine) this.scene.remove(this.finishLine);
+
+        const lineGeom = new THREE.PlaneGeometry(6, 1);
+        const lineMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+        const line = new THREE.Mesh(lineGeom, lineMat);
+        line.rotation.x = -Math.PI / 2;
+        line.position.set(outerRadius - 1, 0.05, 0);
+        this.scene.add(line);
+        this.finishLine = line;
     }
 }
 
